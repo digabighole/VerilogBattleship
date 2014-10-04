@@ -49,23 +49,14 @@ endmodule: SevenSegmentDigit
 /* Controls the LED Number Display. It takes in a HEX (which number display) to display to
  * and displays that number sent into there (BCD_). The turn_on tells whether the 'blank' should be turned on or not
  * this was originally controlled via a switch.
+ * EDIT: change from last lab. Controls only one LED at a time. 
 */
 module SevenSegmentControl
-    (output logic [6:0] HEX7, HEX6, HEX5, HEX4,
-     output logic [6:0] HEX3, HEX2, HEX1, HEX0,
-     input logic [3:0] BCD7, BCD6, BCD5, BCD4,
-     input logic [3:0] BCD3, BCD2, BCD1, BCD0,
-     input logic [7:0] turn_on);
+    (output logic [6:0] HEX,
+     input logic [3:0] BCD,
+     input logic blank);
     
-    //8 total displays
-    SevenSegmentDigit seven (BCD7, HEX7, turn_on[7]); 
-    SevenSegmentDigit six   (BCD6, HEX6, turn_on[6]);
-    SevenSegmentDigit five  (BCD5, HEX5, turn_on[5]);
-    SevenSegmentDigit four  (BCD4, HEX4, turn_on[4]);
-    SevenSegmentDigit three (BCD3, HEX3, turn_on[3]);
-    SevenSegmentDigit two   (BCD2, HEX2, turn_on[2]);
-    SevenSegmentDigit one   (BCD1, HEX1, turn_on[1]);
-    SevenSegmentDigit zero  (BCD0, HEX0, turn_on[0]);
+    SevenSegmentDigit zero  (BCD, HEX, blank);
 
 endmodule: SevenSegmentControl
 
@@ -92,6 +83,53 @@ module IsSomethingWrong
 
 endmodule: IsSomethingWrong
 
+module HandleHit
+    (input logic somethingWrong,
+     input logic [3:0] X,
+     input logic [3:0] Y,
+     input logic big,
+     input logic [1:0] bigLeft,
+     input logic scoreThis);
+
+     always_comb begin
+        if(somethingWrong)  // handles what to do when everything is fine
+            begin
+                
+            end 
+
+     end
+
+endmodule: HandleHit
+
+/* This module checks if there is somethingWrong
+ * If there is, turn on all the LEDs in HEX6 and HEX7 using the module made in
+ * the previous lab
+ */
+module HandleWrong
+    (input logic somethingWrong,
+     output logic [6:0] HEX6, HEX7);
+
+    logic [3:0] displayValue;
+    logic blank;
+
+    always_comb begin
+
+        if(somethingWrong) // turn on all the LEDs in HEX6 and HEX7
+            begin
+                displayValue = 4'b1000;
+                blank = 0;
+            end
+        else
+            begin
+                displayValue = 4'b0000;
+                blank = 1;
+            end
+    end    
+
+    SevenSegmentControl control6 (HEX6, displayValue, blank);
+    SevenSegmentControl control7 (HEX7, displayValue, blank);
+
+endmodule: HandleWrong
 
 /* This module takes in any inputs by the user, desides how to interpret them, and calls the right command 
  * in return. 
@@ -139,7 +177,8 @@ module ChipInterface
 
     end
 
-    HandleHit(somethingWrong, X, Y, SW[17], SW[15:14], KEY[0]); // this handles both wrong or not wrong
+    HandleHit HH (somethingWrong, X, Y, SW[17], SW[15:14], KEY[0]); // this handles both wrong or not wrong
+    HandleWrong HW (somethingWrong, HEX6, HEX7);  handles what to do when something is wrong (ie. light up HEX6 and HEX7)
 
     SevenSegmentControl control (HEX7, HEX6, HEX5, HEX4,
                                  HEX3, HEX2, HEX1, HEX0,
