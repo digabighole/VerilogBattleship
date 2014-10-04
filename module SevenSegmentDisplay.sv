@@ -89,15 +89,22 @@ module HandleHit
      input logic [3:0] Y,
      input logic big,
      input logic [1:0] bigLeft,
-     input logic scoreThis);
+     input logic scoreThis,
+     output logic [17:12] hit,
+     output logic [11:6] nearMiss,
+     output logic [5:0] miss,
+     output logic [6:0] HEX0,
+     output logic [4:0] biggestShipHit);
 
      always_comb begin
-        if(somethingWrong)  // handles what to do when everything is fine
+        if(~somethingWrong)  // handles what to do when everything is fine
             begin
                 
             end 
 
      end
+
+     
 
 endmodule: HandleHit
 
@@ -177,7 +184,7 @@ module ChipInterface
 
     end
 
-    HandleHit HH (somethingWrong, X, Y, SW[17], SW[15:14], KEY[0]); // this handles both wrong or not wrong
+    HandleHit HH (somethingWrong, X, Y, SW[17], SW[15:14], KEY[0], LEDR[17:12], LEDR[11:6], LEDR[5:0], HEX0, LEDG[4:0]); // this handles both wrong or not wrong
     HandleWrong HW (somethingWrong, HEX6, HEX7);  handles what to do when something is wrong (ie. light up HEX6 and HEX7)
 
     SevenSegmentControl control (HEX7, HEX6, HEX5, HEX4,
