@@ -1,0 +1,154 @@
+
+/* Changes a value to a segment display representation */
+module BCDtoSevenSegment
+    (input  logic [3:0] bcd,
+     output logic [6:0] segment);
+
+    always_comb begin
+        case ({bcd})
+          	4'b0000: segment = 7'b100_0000; //test all the different decimals
+          	4'b0001: segment = 7'b111_1001; 
+          	4'b0010: segment = 7'b010_0100;
+          	4'b0011: segment = 7'b011_0000;
+          	4'b0100: segment = 7'b001_1001;
+          	4'b0101: segment = 7'b001_0010;
+          	4'b0110: segment = 7'b000_0010;
+          	4'b0111: segment = 7'b111_1000;
+			4'b1000: segment = 7'b000_0000;
+		    4'b1001: segment = 7'b001_1000;
+          	default: segment = 7'b111_1111; //if no case present, display off
+        endcase
+    end
+
+endmodule: BCDtoSevenSegment
+
+
+/* base module that changes 4 bit input to 7 bit output allows for blanking */
+module SevenSegmentDigit  
+    (input logic [3:0] bcd,
+     output logic [6:0] segment,
+     input logic blank);
+    
+    logic [6:0] decoded;
+
+    BCDtoSevenSegment b2ss(bcd, decoded); //want to incorporate blanking
+                                          //execute the BCDtoSS module
+                                          //and then check the blank bool
+
+    // to fill
+    always_comb begin
+    	if(blank == 1) 
+          segment = 7'b111_1111; //turn display off
+    	else 
+          segment = decoded; //normally display the segments
+    end
+
+endmodule: SevenSegmentDigit
+
+
+/* Controls the LED Number Display. It takes in a HEX (which number display) to display to
+ * and displays that number sent into there (BCD_). The turn_on tells whether the 'blank' should be turned on or not
+ * this was originally controlled via a switch.
+*/
+module SevenSegmentControl
+    (output logic [6:0] HEX7, HEX6, HEX5, HEX4,
+     output logic [6:0] HEX3, HEX2, HEX1, HEX0,
+     input logic [3:0] BCD7, BCD6, BCD5, BCD4,
+     input logic [3:0] BCD3, BCD2, BCD1, BCD0,
+     input logic [7:0] turn_on);
+    
+    //8 total displays
+    SevenSegmentDigit seven (BCD7, HEX7, turn_on[7]); 
+    SevenSegmentDigit six   (BCD6, HEX6, turn_on[6]);
+    SevenSegmentDigit five  (BCD5, HEX5, turn_on[5]);
+    SevenSegmentDigit four  (BCD4, HEX4, turn_on[4]);
+    SevenSegmentDigit three (BCD3, HEX3, turn_on[3]);
+    SevenSegmentDigit two   (BCD2, HEX2, turn_on[2]);
+    SevenSegmentDigit one   (BCD1, HEX1, turn_on[1]);
+    SevenSegmentDigit zero  (BCD0, HEX0, turn_on[0]);
+
+endmodule: SevenSegmentControl
+
+
+
+module IsSomethingWrong
+        (input logic [4:0] X, 
+         input logic [4:0] Y,
+         input logic big,
+         input logic [1:0] bigLeft,
+         input logic scoreThis,
+         output logic wrong);
+
+    always_comb begin
+        if((X>0) && (X<11) && (Y>0) && (Y<11)) 
+            somethingWrong = 1;
+        else if(bigLeft == 2'b11) 
+            somethingWrong = 1;
+        else if((big==1) && (bigLeft==2'b00))
+            somethingWrong = 1;
+        else
+            somethingWrong = 0;
+    end
+
+endmodule: IsSomethingWrong
+
+
+/* This module takes in any inputs by the user, desides how to interpret them, and calls the right command 
+ * in return. 
+ *
+ * The inputs to the system should be as follows:
+ * [3:0] SW -> [3:0] Y
+ * [7:4] SW -> [3:0] X
+ * Key 0 -> Score this
+ * [17] SW -> Big (use the big bomb or not)
+ * [15:14] SW -> [1:0] BigLeft (number of big bombs left)
+ * 
+ * The outputs are: 
+ * [17:12] LEDR -> Hit (Light up all)
+ * [11:6] LEDR -> NearMiss (Light up all)
+ * [5:0] LEDR -> Miss (Light up all)
+ * [6:0] HEX0 -> NumHits [6:0]
+ * [4:0] LEDG -> BiggestShipHit[4:0]
+ * [6:0] HEX6 & HEX7 -> Something is Wrong
+ */
+
+module ChipInterface
+    (output logic [6:0] HEX7, HEX6, HEX0,
+     output logic [17:12] LEDR,
+     output logic [11:6] LEDR,
+     output logic [5:0] LEDR,
+     output logic [4:0] LEDG,
+     input logic [3:0] SW,
+     input logic [7:4] SW,
+     input logic [17] SW,
+     input logic [15:14] SW,
+     input logic [0] KEY);
+
+
+    logic somethingWrong; 
+    
+    logic [3:0] bcd0, bcd1, bcd2, bcd3, bcd4, bcd5, bcd6, bcd7;
+
+
+    IsSomethingWrong ISW(X, Y, SW[17], SW[15:14], KEY[0], somethingWrong);
+
+
+    always_comb begin //all displays defaulted at first
+
+
+
+    end
+
+    HandleHit(somethingWrong, X, Y, SW[17], SW[15:14], KEY[0]); // this handles both wrong or not wrong
+
+    SevenSegmentControl control (HEX7, HEX6, HEX5, HEX4,
+                                 HEX3, HEX2, HEX1, HEX0,
+                                 bcd7, bcd6, bcd5, bcd4,
+                                 bcd3, bcd2, bcd1, bcd0,
+                                 SW[17:10]);
+
+endmodule:ChipInterface
+
+
+
+
