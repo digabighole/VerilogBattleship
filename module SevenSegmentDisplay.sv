@@ -60,7 +60,10 @@ module SevenSegmentControl
 
 endmodule: SevenSegmentControl
 
-
+/* This module checks if there is something wrong with the inputs.
+ * If there is, returns something wrong with 1. Vice versa. 
+ * It only does this if scoreThis has been pressed
+ */
 
 module IsSomethingWrong
         (input logic [4:0] X, 
@@ -71,14 +74,16 @@ module IsSomethingWrong
          output logic wrong);
 
     always_comb begin
-        if((X>0) && (X<11) && (Y>0) && (Y<11)) 
-            somethingWrong = 1;
-        else if(bigLeft == 2'b11) 
-            somethingWrong = 1;
-        else if((big==1) && (bigLeft==2'b00))
-            somethingWrong = 1;
-        else
-            somethingWrong = 0;
+        if(scoreThis) begin
+            if((X>0) && (X<11) && (Y>0) && (Y<11)) 
+                somethingWrong = 1;
+            else if(bigLeft == 2'b11) 
+                somethingWrong = 1;
+            else if((big==1) && (bigLeft==2'b00))
+                somethingWrong = 1;
+            else
+                somethingWrong = 0;
+        end
     end
 
 endmodule: IsSomethingWrong
@@ -103,10 +108,10 @@ module HandleHit
             end 
 
      end
-
-     
-
 endmodule: HandleHit
+
+
+
 
 /* This module checks if there is somethingWrong
  * If there is, turn on all the LEDs in HEX6 and HEX7 using the module made in
@@ -137,6 +142,9 @@ module HandleWrong
     SevenSegmentControl control7 (HEX7, displayValue, blank);
 
 endmodule: HandleWrong
+
+
+
 
 /* This module takes in any inputs by the user, desides how to interpret them, and calls the right command 
  * in return. 
