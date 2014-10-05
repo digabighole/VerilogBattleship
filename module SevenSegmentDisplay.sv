@@ -88,23 +88,67 @@ module IsSomethingWrong
 
 endmodule: IsSomethingWrong
 
+
+/* This module checks the square passed in and returns whether it was hit, a miss, a near miss...
+ * 
+ */
+module checkSquare
+    (input logic [3:0] X,
+     input logic [3:0] Y,
+     output logic isHit,
+     output logic isNearMiss,
+     output logic isMiss,
+     output logic [4:0] biggestShip);
+     
+    always_comb begin
+        if(((X == 7 | X == 8) && Y == 6) | ((X == 9 | X == 10) && Y == 1)) // then this is the patrol boat
+            biggestShip = 5'b000_01;
+        else if(X == 2 && (Y == 10 | Y == 9 | Y == 8))
+            biggestShip = 5'b000_10;
+        else if((X == 2 | X == 3 | X == 4) && Y == 1)
+            biggestShip = 5'b001_00;
+        else if((X == 1 | X == 2 | X == 3 | X == 4) && Y == 2)
+            biggestShip = 5'b010_00;
+        else if((X == 2 | X == 3 | X == 4 | X == 5 | X == 6) && Y == 3)
+            biggestShip = 5'b100_00;
+
+        if(biggestShip == 0) begin
+            isHit = 0;
+            isMiss = 1;
+            // still to do nearMiss
+        end
+        else begin
+            isHit = 1;
+            isMiss = 0;
+            // still to do nearMiss
+        end
+    end
+
+endmodue: checkSquare
+
+/* This module handles when there is a possible hit.
+ * It checks if it is a big bomb or a small one and checks the right number of squares correspondingly. 
+ */
 module HandleHit
     (input logic somethingWrong,
      input logic [3:0] X,
      input logic [3:0] Y,
      input logic big,
-     input logic [1:0] bigLeft,
      input logic scoreThis,
-     output logic [17:12] hit,
-     output logic [11:6] nearMiss,
-     output logic [5:0] miss,
-     output logic [6:0] HEX0,
-     output logic [4:0] biggestShipHit);
+     output logic isHit,     
+     output logic isNearMiss,
+     output logic isMiss,
+     output logic [4:0] biggestShip);
 
      always_comb begin
-        if(~somethingWrong)  // handles what to do when everything is fine
+        if(~somethingWrong && scoreThis)  // handles what to do when everything is fine
             begin
-                
+                if(big) begin
+                    // handles what to do when a big bomb is used
+                end 
+                else begin
+                    // handles what to do when it is just a small bomb
+                end
             end 
 
      end
@@ -115,6 +159,7 @@ endmodule: HandleHit
 
 /* This module checks if there is somethingWrong
  * If there is, turn on all the LEDs in HEX6 and HEX7 using the module made in
+
  * the previous lab
  */
 module HandleWrong
@@ -182,6 +227,9 @@ module ChipInterface
     
     logic [3:0] bcd0, bcd1, bcd2, bcd3, bcd4, bcd5, bcd6, bcd7;
 
+    logic isHit, isMiss, isNearMiss;
+    logic [4:0] biggestShip;
+
 
     IsSomethingWrong ISW(X, Y, SW[17], SW[15:14], KEY[0], somethingWrong);
 
@@ -192,14 +240,11 @@ module ChipInterface
 
     end
 
-    HandleHit HH (somethingWrong, X, Y, SW[17], SW[15:14], KEY[0], LEDR[17:12], LEDR[11:6], LEDR[5:0], HEX0, LEDG[4:0]); // this handles both wrong or not wrong
+    HandleHit HH (somethingWrong, X, Y, SW[17], KEY[0], isHit, isNearMiss, isMiss, biggestShip); // this handles both wrong or not wrong
     HandleWrong HW (somethingWrong, HEX6, HEX7);  handles what to do when something is wrong (ie. light up HEX6 and HEX7)
 
-    SevenSegmentControl control (HEX7, HEX6, HEX5, HEX4,
-                                 HEX3, HEX2, HEX1, HEX0,
-                                 bcd7, bcd6, bcd5, bcd4,
-                                 bcd3, bcd2, bcd1, bcd0,
-                                 SW[17:10]);
+    // set the lights for hits and misses and stuffs
+    
 
 endmodule:ChipInterface
 
