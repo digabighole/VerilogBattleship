@@ -60,11 +60,48 @@ module SevenSegmentControl
 
 endmodule: SevenSegmentControl
 
+
+/* This module handles the LED control for the hit, nearMiss and miss
+ * It also handles the logic for the largest ship that was hit. 
+ */
+module BombLightControl
+    (input logic isHit, isNearMiss, isMiss, 
+     input logic [4:0] biggestShip, 
+     output logic hit[17:12], 
+     output logic nearMiss[11:6], 
+     output logic miss[5:0], 
+     output logic biggestShipHit[4:0]);
+
+    always_comb begin
+        // Might have to be flipped depending whether the LEDs are active High or active Low
+        if(isHit)
+            hit = 6'b111_111;
+        else 
+            hit = 6'b000_000;
+
+        if(isNearMiss)
+            nearMiss = 6'b111_111;
+        else
+            nearMiss = 6'b000_000;
+
+        if(miss)
+            miss = 6'b111_111;
+        else
+            miss = 6'b000_000;
+
+        biggestShipHit = biggestShip; // biggestShip already contains the value we want. This was encoded when the hit was made
+    end
+
+
+
+endmodule: BombLightControl
+
+
+
 /* This module checks if there is something wrong with the inputs.
  * If there is, returns something wrong with 1. Vice versa. 
  * It only does this if scoreThis has been pressed
  */
-
 module IsSomethingWrong
         (input logic [4:0] X, 
          input logic [4:0] Y,
@@ -125,6 +162,10 @@ module checkSquare
     end
 
 endmodue: checkSquare
+
+
+
+
 
 /* This module handles when there is a possible hit.
  * It checks if it is a big bomb or a small one and checks the right number of squares correspondingly. 
@@ -244,7 +285,8 @@ module ChipInterface
     HandleWrong HW (somethingWrong, HEX6, HEX7);  handles what to do when something is wrong (ie. light up HEX6 and HEX7)
 
     // set the lights for hits and misses and stuffs
-    
+    BombLightControl BLC (isHit, isNearMiss, isMiss, biggestShip, LEDR[17:12], LEDR[11:6], LEDR[5:0], LEDG[4:0]);     // Handles all but NearMiss
+
 
 endmodule:ChipInterface
 
