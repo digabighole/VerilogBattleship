@@ -198,25 +198,25 @@ module checkNearMiss
         if(calculate) begin
             for(i = -1; i < 2; i = i+2) begin
                 for(j = i-1; j < 2; j = j+2) begin
-                    if(X == 0 || Y == 0 || X == 11 || Y == 11) // then forget it, it's out of the map
+                    if(X+i == 0 || Y+j == 0 || X+i == 11 || Y+j == 11) // then forget it, it's out of the map
                         isNearMiss = 0;
-                    else if(((X == 7 | X == 8) && Y == 6) | ((X == 9 | X == 10) && Y == 1)) begin // then this is the patrol boat
+                    else if(((X+i == 7 | X+i == 8) && Y+j == 6) | ((X+i == 9 | X+i == 10) && Y+j == 1)) begin // then this is the patrol boat
                         isNearMiss = 1;
                         break; // we have a isNearMiss, get out. 
                     end
-                    else if(X == 2 && (Y == 10 | Y == 9 | Y == 8))begin
+                    else if(X+i == 2 && (Y+j == 10 | Y+j == 9 | Y+j == 8))begin
                         isNearMiss = 1;
                         break; // we have a isNearMiss, get out.
                     end 
-                    else if((X == 2 | X == 3 | X == 4) && Y == 1)begin
+                    else if((X+i == 2 | X+i == 3 | X+i == 4) && Y+j == 1)begin
                         isNearMiss = 1;
                         break; // we have a isNearMiss, get out.
                     end 
-                    else if((X == 1 | X == 2 | X == 3 | X == 4) && Y == 2)begin
+                    else if((X+i == 1 | X+i == 2 | X+i == 3 | X+i == 4) && Y+j == 2)begin
                         isNearMiss = 1;
                         break; // we have a isNearMiss, get out. 
                     end
-                    else if((X == 2 | X == 3 | X == 4 | X == 5 | X == 6) && Y == 3)begin
+                    else if((X+i == 2 | X+i == 3 | X+i == 4 | X+i == 5 | X+i == 6) && Y+j == 3)begin
                         isNearMiss = 1;
                         break; // we have a isNearMiss, get out. 
                     end
