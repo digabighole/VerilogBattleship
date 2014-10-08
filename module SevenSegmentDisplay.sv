@@ -150,6 +150,8 @@ module checkSquare
      output logic isNearMiss,
      output logic isMiss,
      output logic [4:0] biggestShip);
+
+    logic calculateNearMiss;
      
     always_comb begin
         if(((X == 7 | X == 8) && Y == 6) | ((X == 9 | X == 10) && Y == 1)) // then this is the patrol boat
@@ -162,22 +164,74 @@ module checkSquare
             biggestShip = 5'b010_00;
         else if((X == 2 | X == 3 | X == 4 | X == 5 | X == 6) && Y == 3)
             biggestShip = 5'b100_00;
+        else
+            biggestShip = 5'b000_00;
 
         if(biggestShip == 0) begin
             isHit = 0;
             isMiss = 1;
-            // still to do nearMiss
+            calculateNearMiss = 1; // Ship did not get hit, need to calculate near miss
         end
         else begin
             isHit = 1;
             isMiss = 0;
-            // still to do nearMiss
+            calculateNearMiss = 0; // because ship got hit, no near miss
         end
     end
+
+    checkNearMiss CNM (X, Y, calculateNearMiss, isNearMiss);
 
 endmodue: checkSquare
 
 
+/* This module handles the near Miss
+ * If the shot lands on a ship, nearMiss is 0
+ * If the shot lands not on a ship but adjacent to a ship, then nearmiss is 1. (not diagonal)
+ */
+module checkNearMiss
+    (input logic [3:0] X,
+     input logic [3:0] Y,
+     input logic calculate,
+     output logic isNearMiss);
+
+    always_comb begin
+        if(calculate) begin
+            for(i = -1; i < 2; i = i+2) begin
+                for(j = i-1; j < 2; j = j+2) begin
+                    if(X == 0 || Y == 0 || X == 11 || Y == 11) // then forget it, it's out of the map
+                        isNearMiss = 0;
+                    else if(((X == 7 | X == 8) && Y == 6) | ((X == 9 | X == 10) && Y == 1)) begin // then this is the patrol boat
+                        isNearMiss = 1;
+                        break; // we have a isNearMiss, get out. 
+                    end
+                    else if(X == 2 && (Y == 10 | Y == 9 | Y == 8))begin
+                        isNearMiss = 1;
+                        break; // we have a isNearMiss, get out.
+                    end 
+                    else if((X == 2 | X == 3 | X == 4) && Y == 1)begin
+                        isNearMiss = 1;
+                        break; // we have a isNearMiss, get out.
+                    end 
+                    else if((X == 1 | X == 2 | X == 3 | X == 4) && Y == 2)begin
+                        isNearMiss = 1;
+                        break; // we have a isNearMiss, get out. 
+                    end
+                    else if((X == 2 | X == 3 | X == 4 | X == 5 | X == 6) && Y == 3)begin
+                        isNearMiss = 1;
+                        break; // we have a isNearMiss, get out. 
+                    end
+                    else
+                        isNearMiss = 0; // that means there is not a ship adjacent to it
+                end
+            end
+
+        end
+        else
+            isNearMiss = 0; // that means that it already hit a boat. 
+
+    end
+
+endmodule: checkNearMiss
 
 
 
