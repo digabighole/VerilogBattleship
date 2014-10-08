@@ -61,6 +61,20 @@ module SevenSegmentControl
 endmodule: SevenSegmentControl
 
 
+
+/* Displays the number of hits the bomb made
+ * 
+ */
+module NumberHitControl 
+    (input logic [3:0] numberHit,
+     output logic [6:0] HEX)
+
+    SevenSegmentDigit numHits (numberHit, HEX, 0);  // set the blank to 0 for now. I'm not sure but may need to be toggled for scoreNow. 
+
+endmodule: NumberHitControl
+
+
+
 /* This module handles the LED control for the hit, nearMiss and miss
  * It also handles the logic for the largest ship that was hit. 
  */
@@ -271,6 +285,8 @@ module ChipInterface
     logic isHit, isMiss, isNearMiss;
     logic [4:0] biggestShip;
 
+    logic [3:0] numberHit;
+
 
     IsSomethingWrong ISW(X, Y, SW[17], SW[15:14], KEY[0], somethingWrong);
 
@@ -286,6 +302,8 @@ module ChipInterface
 
     // set the lights for hits and misses and stuffs
     BombLightControl BLC (isHit, isNearMiss, isMiss, biggestShip, LEDR[17:12], LEDR[11:6], LEDR[5:0], LEDG[4:0]);     // Handles all but NearMiss
+
+    NumberHitControl NHC (numberHit, HEX0);
 
 
 endmodule:ChipInterface
