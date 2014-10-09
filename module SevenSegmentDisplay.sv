@@ -160,7 +160,7 @@ module IsSomethingWrong
 
     always_comb begin
         if(scoreThis) begin
-            if((X>0) && (X<11) && (Y>0) && (Y<11))  // OR ((X < 0) || (X > 10) || (Y < 0) || (Y > 10)) 
+            if ((X < 1) || (X > 10) || (Y < 1) || (Y > 10))
                 somethingWrong = 1;
             else if(bigLeft == 2'b11) 
                 somethingWrong = 1;
@@ -216,6 +216,26 @@ module checkSquare
     checkNearMiss CNM (X, Y, calculateNearMiss, isNearMiss);
 
 endmodue: checkSquare
+
+
+module testCheckSquare;
+
+    logic isHit;
+    logic isNearMiss;
+    logic isMiss;
+    logic [4:0] biggestShip;
+    logic [3:0] X;
+    logic [3:0] Y;
+    
+    checkSquare test(X,Y,isHit,NearMiss,isMiss,biggestShip);
+    
+    initial begin
+        $monitor($time,,"X = %b, Y = %b, isHit = %b, NearMiss = %b, isMiss = %b, biggestShip = %b", X,Y,isHit,NearMiss,isMiss,biggestShip);
+            X = 4'b0000;
+            Y = 4'b0000;
+        #10 
+       
+
 
 
 /* This module handles the near Miss
